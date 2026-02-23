@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 interface TaskDao {
     // Read (Order by priority, then date)
     @Query("SELECT * FROM `task-table` ORDER BY priority ASC, createdAt DESC")
-    fun getAllTask(): Flow<List<TaskEntity>>
+    fun getAllTasks(): Flow<List<TaskEntity>>
 
     // Create
     @Insert(onConflict = REPLACE)
