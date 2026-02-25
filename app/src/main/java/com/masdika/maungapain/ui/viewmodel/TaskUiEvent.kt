@@ -25,6 +25,8 @@ sealed interface TaskUiEvent {
 
     data class OnUpdateTask(
         val task: TaskEntity,
-        val isComplete: Boolean
+        val title: String,
+        val priority: Priority,
+        val description: String,
     ) : TaskUiEvent
 }

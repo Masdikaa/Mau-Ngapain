@@ -1,12 +1,12 @@
 package com.masdika.maungapain.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.masdika.maungapain.data.local.entity.TaskEntity
 import com.masdika.maungapain.data.local.enum.Priority
 import com.masdika.maungapain.data.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,16 +41,25 @@ class TaskViewModel @Inject constructor(
 
             is TaskUiEvent.OnDescriptionInputChange -> handleDescriptionInput(event.value)
 
-            is TaskUiEvent.OnSaveTask -> {}
+            is TaskUiEvent.OnSaveTask -> saveTask(
+                title = event.title,
+                description = event.description,
+                priority = event.priority
+            )
+
+            is TaskUiEvent.OnUpdateTask -> updateTask(
+                task = event.task,
+                title = event.title,
+                description = event.description,
+                priority = event.priority,
+            )
 
             is TaskUiEvent.OnDeleteTask -> {}
-
-            is TaskUiEvent.OnUpdateTask -> {}
         }
     }
 
     private fun observeTasks() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(loading = true) }
 
             repository.getAllTasks()
@@ -65,7 +74,7 @@ class TaskViewModel @Inject constructor(
                 }.collect { taskList ->
                     _uiState.update {
                         it.copy(
-                            task = taskList,
+                            tasks = taskList,
                             loading = false,
                             isError = false,
                             errorMessage = null
@@ -82,9 +91,6 @@ class TaskViewModel @Inject constructor(
                 selectedTask = null
             )
         }
-        val message: String = "Title Input: ${_uiState.value.taskTitleInput}\n" +
-                "Description Input: ${_uiState.value.taskDescriptionInput}\n"
-        Log.i("VIEWMODEL - openCreateTaskInputForm", message)
     }
 
     private fun openUpdateTaskInputForm(task: TaskEntity) {
@@ -97,9 +103,6 @@ class TaskViewModel @Inject constructor(
                 taskPriorityInput = task.priority
             )
         }
-        val message: String = "Title Input: ${_uiState.value.taskTitleInput}\n" +
-                "Description Input: ${_uiState.value.taskDescriptionInput}\n"
-        Log.i("VIEWMODEL - openUpdateTaskInputForm", message)
     }
 
     private fun closeTaskInputForm() {
@@ -109,6 +112,45 @@ class TaskViewModel @Inject constructor(
                 taskTitleInput = "",
                 taskDescriptionInput = ""
             )
+        }
+    }
+
+    private fun saveTask(
+        title: String,
+        description: String,
+        priority: Priority
+    ) {
+        val newTask = TaskEntity(
+            title = title,
+            description = description,
+            priority = priority
+        )
+
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.insertTask(newTask)
+            closeTaskInputForm()
+        }
+    }
+
+    private fun updateTask(
+        task: TaskEntity,
+        title: String,
+        description: String,
+        priority: Priority,
+        isComplete: Boolean = true,
+        modifiedAt: Long = System.currentTimeMillis()
+    ) {
+        val updatedTask = task.copy(
+            title = title,
+            description = description,
+            priority = priority,
+            isComplete = isComplete,
+            modifiedAt = modifiedAt
+        )
+
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.updateTask(updatedTask)
+            closeTaskInputForm()
         }
     }
 

@@ -1,5 +1,6 @@
 package com.masdika.maungapain.ui.screen.component
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -21,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +54,7 @@ fun TaskInputForm(
     Dialog(
         onDismissRequest = { onEvent(TaskUiEvent.OnCloseForm) },
         properties = DialogProperties(
-            usePlatformDefaultWidth = false,
+            usePlatformDefaultWidth = true,
             dismissOnClickOutside = true
         )
     ) {
@@ -140,6 +143,44 @@ fun TaskInputForm(
                             }
                         )
                     }
+                }
+            }
+            Spacer(Modifier.height(15.dp))
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+            ) {
+                TextButton(onClick = { onEvent(TaskUiEvent.OnCloseForm) }) {
+                    Text("Cancel")
+                }
+                Button(
+                    onClick = {
+                        if (isUpdateMode) {
+                            onEvent(
+                                TaskUiEvent.OnUpdateTask(
+                                    task = state.selectedTask,
+                                    title = state.taskTitleInput,
+                                    priority = state.taskPriorityInput,
+                                    description = state.taskDescriptionInput,
+                                )
+                            )
+                            Log.i("Update Button", "${state.selectedTask}")
+                        } else {
+                            onEvent(
+                                TaskUiEvent.OnSaveTask(
+                                    title = state.taskTitleInput,
+                                    priority = state.taskPriorityInput,
+                                    description = state.taskDescriptionInput
+                                )
+                            )
+                        }
+                    }
+                ) {
+                    Text(
+                        text = if (isUpdateMode) "Save Update" else "Save"
+                    )
                 }
             }
         }
