@@ -7,6 +7,8 @@ sealed interface TaskUiEvent {
 
     data class OnTitleInputChange(val value: String) : TaskUiEvent
     data class OnDescriptionInputChange(val value: String) : TaskUiEvent
+    data class OnPriorityInputChange(val priority: Priority) : TaskUiEvent
+
     object OnOpenCreateTaskForm : TaskUiEvent
     data class OnOpenUpdateTaskForm(val task: TaskEntity) : TaskUiEvent
     object OnCloseForm : TaskUiEvent

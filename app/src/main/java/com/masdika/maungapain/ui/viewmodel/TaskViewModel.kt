@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.masdika.maungapain.data.local.entity.TaskEntity
+import com.masdika.maungapain.data.local.enum.Priority
 import com.masdika.maungapain.data.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +32,8 @@ class TaskViewModel @Inject constructor(
             is TaskUiEvent.OnOpenCreateTaskForm -> openCreateTaskInputForm()
 
             is TaskUiEvent.OnOpenUpdateTaskForm -> openUpdateTaskInputForm(event.task)
+
+            is TaskUiEvent.OnPriorityInputChange -> handlePriorityInput(event.priority)
 
             is TaskUiEvent.OnCloseForm -> closeTaskInputForm()
 
@@ -90,7 +93,8 @@ class TaskViewModel @Inject constructor(
                 isFormVisible = true,
                 selectedTask = task,
                 taskTitleInput = task.title,
-                taskDescriptionInput = task.description ?: ""
+                taskDescriptionInput = task.description ?: "",
+                taskPriorityInput = task.priority
             )
         }
         val message: String = "Title Input: ${_uiState.value.taskTitleInput}\n" +
@@ -120,6 +124,14 @@ class TaskViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 taskDescriptionInput = newTitle
+            )
+        }
+    }
+
+    private fun handlePriorityInput(newPriority: Priority) {
+        _uiState.update {
+            it.copy(
+                taskPriorityInput = newPriority
             )
         }
     }

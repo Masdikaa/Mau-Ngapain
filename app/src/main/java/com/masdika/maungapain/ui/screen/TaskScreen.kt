@@ -31,7 +31,7 @@ fun TaskScreen(
     val dummyTask = TaskEntity(
         title = "Dummy Title",
         description = "Dummy Description",
-        priority = Priority.MEDIUM,
+        priority = Priority.HIGH,
     )
 
     if (state.isFormVisible) {
@@ -42,8 +42,8 @@ fun TaskScreen(
     } else {
         TaskContent(
             onCreateTask = {
-//                viewModel.onEvent(TaskUiEvent.OnOpenCreateTaskForm)
-                viewModel.onEvent(TaskUiEvent.OnOpenUpdateTaskForm(dummyTask))
+                viewModel.onEvent(TaskUiEvent.OnOpenCreateTaskForm)
+//                viewModel.onEvent(TaskUiEvent.OnOpenUpdateTaskForm(dummyTask))
             }
         )
     }
