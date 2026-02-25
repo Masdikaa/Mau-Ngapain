@@ -2,7 +2,7 @@ package com.masdika.maungapain.data.repository
 
 import com.masdika.maungapain.data.local.dao.TaskDao
 import com.masdika.maungapain.data.local.entity.TaskEntity
-import com.masdika.maungapain.data.repository.`interface`.TaskRepository
+import com.masdika.maungapain.data.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

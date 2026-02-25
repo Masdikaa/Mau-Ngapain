@@ -1,7 +1,7 @@
 package com.masdika.maungapain.di
 
 import com.masdika.maungapain.data.repository.TaskRepositoryImpl
-import com.masdika.maungapain.data.repository.`interface`.TaskRepository
+import com.masdika.maungapain.data.repository.TaskRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

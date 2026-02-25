@@ -1,4 +1,4 @@
-package com.masdika.maungapain.data.repository.`interface`
+package com.masdika.maungapain.data.repository
 
 import com.masdika.maungapain.data.local.entity.TaskEntity
 import kotlinx.coroutines.flow.Flow

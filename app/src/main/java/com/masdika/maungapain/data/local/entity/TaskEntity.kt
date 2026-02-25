@@ -10,6 +10,7 @@ data class TaskEntity(
     @PrimaryKey
     val id: UUID = UUID.randomUUID(),
     val title: String,
+    val description: String?,
     val priority: Priority,
     val isComplete: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
