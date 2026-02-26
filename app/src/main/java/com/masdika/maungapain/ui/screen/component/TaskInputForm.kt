@@ -1,6 +1,5 @@
 package com.masdika.maungapain.ui.screen.component
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,11 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -27,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,20 +30,24 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.masdika.maungapain.data.local.enum.Priority
 import com.masdika.maungapain.ui.theme.MauNgapainTheme
-import com.masdika.maungapain.ui.viewmodel.TaskUiEvent
 import com.masdika.maungapain.ui.viewmodel.TaskUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskInputForm(
     state: TaskUiState,
-    onEvent: (TaskUiEvent) -> Unit
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onPriorityChange: (Priority) -> Unit,
+    onSave: () -> Unit,
+    onCancel: () -> Unit,
+    isUpdateMode: Boolean
 ) {
-    val isUpdateMode = state.selectedTask != null
+//    val isUpdateMode = state.selectedTask != null
     val selectedPriorityIndex = state.taskPriorityInput.ordinal
 
     Dialog(
-        onDismissRequest = { onEvent(TaskUiEvent.OnCloseForm) },
+        onDismissRequest = onCancel,
         properties = DialogProperties(
             usePlatformDefaultWidth = true,
             dismissOnClickOutside = true
@@ -72,7 +71,7 @@ fun TaskInputForm(
             Spacer(Modifier.height(15.dp))
             OutlinedTextField(
                 value = state.taskTitleInput,
-                onValueChange = { onEvent(TaskUiEvent.OnTitleInputChange(it)) },
+                onValueChange = onTitleChange,
                 label = { Text("Title") },
                 singleLine = true,
                 modifier = Modifier
@@ -82,7 +81,7 @@ fun TaskInputForm(
             Spacer(Modifier.height(10.dp))
             OutlinedTextField(
                 value = state.taskDescriptionInput,
-                onValueChange = { onEvent(TaskUiEvent.OnDescriptionInputChange(it)) },
+                onValueChange = onDescriptionChange,
                 label = { Text("Description") },
                 singleLine = false,
                 modifier = Modifier
@@ -112,15 +111,7 @@ fun TaskInputForm(
                             count = Priority.entries.size,
                             baseShape = RoundedCornerShape(8.dp)
                         ),
-                        onClick = {
-                            onEvent(TaskUiEvent.OnPriorityInputChange(priority))
-                            val logMessage = """
-                               selectedPriorityIndex : $selectedPriorityIndex
-                               currentTaskIndex      : ${state.selectedTask?.priority?.ordinal}
-                               index and priority    : $index | $priority
-                            """
-                            Log.i("PrioritySelection", logMessage)
-                        },
+                        onClick = { onPriorityChange(priority) },
                         selected = index == selectedPriorityIndex,
                         enabled = true,
                         icon = {
@@ -142,34 +133,14 @@ fun TaskInputForm(
                     .padding(horizontal = 8.dp)
             ) {
                 OutlinedButton(
-                    onClick = { onEvent(TaskUiEvent.OnCloseForm) },
+                    onClick = onCancel,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("Cancel")
                 }
                 Spacer(Modifier.width(15.dp))
                 Button(
-                    onClick = {
-                        if (isUpdateMode) {
-                            onEvent(
-                                TaskUiEvent.OnUpdateTask(
-                                    task = state.selectedTask,
-                                    title = state.taskTitleInput,
-                                    priority = state.taskPriorityInput,
-                                    description = state.taskDescriptionInput,
-                                )
-                            )
-                            Log.i("Update Button", "${state.selectedTask}")
-                        } else {
-                            onEvent(
-                                TaskUiEvent.OnSaveTask(
-                                    title = state.taskTitleInput,
-                                    priority = state.taskPriorityInput,
-                                    description = state.taskDescriptionInput
-                                )
-                            )
-                        }
-                    },
+                    onClick = onSave,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
@@ -179,21 +150,6 @@ fun TaskInputForm(
             }
         }
     }
-}
-
-@Composable
-private fun PriorityIcon(priority: Priority) {
-    val iconColor = when (priority) {
-        Priority.HIGH -> Color.Red
-        Priority.MEDIUM -> Color(0xFFFFA500)
-        Priority.LOW -> Color.Green
-    }
-
-    Icon(
-        imageVector = Icons.Default.Flag,
-        contentDescription = "Priority ${priority.name}",
-        tint = iconColor
-    )
 }
 
 @Preview(
@@ -206,7 +162,12 @@ private fun TaskInputFormPreview() {
     MauNgapainTheme {
         TaskInputForm(
             state = TaskUiState(),
-            onEvent = {}
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onPriorityChange = {},
+            onSave = {},
+            onCancel = {},
+            isUpdateMode = false,
         )
     }
 }
