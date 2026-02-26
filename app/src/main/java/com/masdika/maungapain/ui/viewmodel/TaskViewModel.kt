@@ -110,7 +110,8 @@ class TaskViewModel @Inject constructor(
             it.copy(
                 isFormVisible = false,
                 taskTitleInput = "",
-                taskDescriptionInput = ""
+                taskDescriptionInput = "",
+                taskPriorityInput = Priority.MEDIUM
             )
         }
     }

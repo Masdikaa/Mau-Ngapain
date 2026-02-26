@@ -87,7 +87,7 @@ fun TaskContent(
             ) {
                 items(
                     items = tasks,
-                    key = { it.id }
+                    key = { task -> task.id }
                 ) { task ->
                     Column(
                         modifier = Modifier
@@ -119,7 +119,7 @@ fun TaskContent(
 @Composable
 private fun TaskContentPreview() {
     MauNgapainTheme {
-        val tasks = listOf<TaskEntity>(
+        val tasks = listOf(
             TaskEntity(
                 title = "Task 1",
                 description = "Description Task 1",

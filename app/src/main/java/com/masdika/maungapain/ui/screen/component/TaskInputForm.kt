@@ -14,25 +14,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -48,8 +44,8 @@ fun TaskInputForm(
     state: TaskUiState,
     onEvent: (TaskUiEvent) -> Unit
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
     val isUpdateMode = state.selectedTask != null
+    val selectedPriorityIndex = state.taskPriorityInput.ordinal
 
     Dialog(
         onDismissRequest = { onEvent(TaskUiEvent.OnCloseForm) },
@@ -95,56 +91,49 @@ fun TaskInputForm(
                     .padding(horizontal = 8.dp)
             )
             Spacer(Modifier.height(10.dp))
-            ExposedDropdownMenuBox(
-                expanded = isExpanded,
-                onExpandedChange = { isExpanded = !isExpanded },
+            Text(
+                text = "Priority",
+                textAlign = TextAlign.Start,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 9.dp)
+            )
+            Spacer(Modifier.height(2.dp))
+            SingleChoiceSegmentedButtonRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
             ) {
-                OutlinedTextField(
-                    value = state.taskPriorityInput.name,
-                    onValueChange = {},
-                    label = { Text("Priority") },
-                    readOnly = true,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
-                    },
-                    leadingIcon = {
-                        PriorityIcon(priority = state.taskPriorityInput)
-                    },
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(
-                            type = ExposedDropdownMenuAnchorType.PrimaryEditable,
-                            enabled = true
-                        )
-                )
-                ExposedDropdownMenu(
-                    expanded = isExpanded,
-                    onDismissRequest = { isExpanded = false }
-                ) {
-                    Priority.entries.forEach { priority ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                ) {
-                                    PriorityIcon(priority = priority)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(priority.name)
-                                }
-                            },
-                            onClick = {
-                                onEvent(TaskUiEvent.OnPriorityInputChange(priority))
-                                isExpanded = false
+                Priority.entries.forEachIndexed { index, priority ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = Priority.entries.size,
+                            baseShape = RoundedCornerShape(8.dp)
+                        ),
+                        onClick = {
+                            onEvent(TaskUiEvent.OnPriorityInputChange(priority))
+                            val logMessage = """
+                               selectedPriorityIndex : $selectedPriorityIndex
+                               currentTaskIndex      : ${state.selectedTask?.priority?.ordinal}
+                               index and priority    : $index | $priority
+                            """
+                            Log.i("PrioritySelection", logMessage)
+                        },
+                        selected = index == selectedPriorityIndex,
+                        enabled = true,
+                        icon = {
+                            if (index == selectedPriorityIndex) {
+                                PriorityIcon(priority)
                             }
-                        )
+                        }
+                    ) {
+                        Text(text = priority.name)
                     }
                 }
             }
+
             Spacer(Modifier.height(15.dp))
             Row(
                 horizontalArrangement = Arrangement.End,
@@ -152,9 +141,13 @@ fun TaskInputForm(
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
             ) {
-                TextButton(onClick = { onEvent(TaskUiEvent.OnCloseForm) }) {
+                OutlinedButton(
+                    onClick = { onEvent(TaskUiEvent.OnCloseForm) },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
                     Text("Cancel")
                 }
+                Spacer(Modifier.width(15.dp))
                 Button(
                     onClick = {
                         if (isUpdateMode) {
@@ -176,7 +169,8 @@ fun TaskInputForm(
                                 )
                             )
                         }
-                    }
+                    },
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         text = if (isUpdateMode) "Save Update" else "Save"
@@ -201,7 +195,6 @@ private fun PriorityIcon(priority: Priority) {
         tint = iconColor
     )
 }
-
 
 @Preview(
     showBackground = true,
