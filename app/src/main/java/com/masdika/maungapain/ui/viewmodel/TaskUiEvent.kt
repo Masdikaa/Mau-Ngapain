@@ -5,28 +5,21 @@ import com.masdika.maungapain.data.local.enum.Priority
 
 sealed interface TaskUiEvent {
 
-    data class OnTitleInputChange(val value: String) : TaskUiEvent
-    data class OnDescriptionInputChange(val value: String) : TaskUiEvent
-    data class OnPriorityInputChange(val priority: Priority) : TaskUiEvent
+    sealed interface InputForm : TaskUiEvent {
+        data class TitleChanged(val title: String) : InputForm
+        data class DescriptionChanged(val description: String) : InputForm
+        data class PriorityChanged(val priority: Priority) : InputForm
+        object Save : InputForm
+        object Cancel : InputForm
+    }
 
-    object OnOpenCreateTaskForm : TaskUiEvent
-    data class OnOpenUpdateTaskForm(val task: TaskEntity) : TaskUiEvent
-    object OnCloseForm : TaskUiEvent
+    sealed interface FormNavigation : TaskUiEvent {
+        object OpenCreateForm : FormNavigation
+        data class OpenUpdateForm(val task: TaskEntity) : FormNavigation
+    }
 
-    data class OnSaveTask(
-        val title: String,
-        val priority: Priority,
-        val description: String,
-    ) : TaskUiEvent
-
-    data class OnDeleteTask(
-        val task: TaskEntity
-    ) : TaskUiEvent
-
-    data class OnUpdateTask(
-        val task: TaskEntity,
-        val title: String,
-        val priority: Priority,
-        val description: String,
-    ) : TaskUiEvent
+    sealed interface TaskAction : TaskUiEvent {
+        data class ToggleComplete(val task: TaskEntity) : TaskAction
+        data class Delete(val task: TaskEntity) : TaskAction
+    }
 }

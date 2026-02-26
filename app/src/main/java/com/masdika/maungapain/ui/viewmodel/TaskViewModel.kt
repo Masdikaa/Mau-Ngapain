@@ -29,32 +29,30 @@ class TaskViewModel @Inject constructor(
     // Single Entry-Point for Event
     fun onEvent(event: TaskUiEvent) {
         when (event) {
-            is TaskUiEvent.OnOpenCreateTaskForm -> openCreateTaskInputForm()
+            is TaskUiEvent.InputForm -> {
+                when (event) {
+                    is TaskUiEvent.InputForm.TitleChanged -> handleTitleInput(event.title)
+                    is TaskUiEvent.InputForm.DescriptionChanged -> handleDescriptionInput(event.description)
+                    is TaskUiEvent.InputForm.PriorityChanged -> handlePriorityInput(event.priority)
+                    is TaskUiEvent.InputForm.Save -> handleSaveAction()
+                    is TaskUiEvent.InputForm.Cancel -> closeTaskInputForm()
+                }
+            }
 
-            is TaskUiEvent.OnOpenUpdateTaskForm -> openUpdateTaskInputForm(event.task)
+            is TaskUiEvent.FormNavigation -> {
+                when (event) {
+                    is TaskUiEvent.FormNavigation.OpenCreateForm -> openCreateTaskInputForm()
+                    is TaskUiEvent.FormNavigation.OpenUpdateForm -> openUpdateTaskInputForm(event.task)
+                }
+            }
 
-            is TaskUiEvent.OnPriorityInputChange -> handlePriorityInput(event.priority)
-
-            is TaskUiEvent.OnCloseForm -> closeTaskInputForm()
-
-            is TaskUiEvent.OnTitleInputChange -> handleTitleInput(event.value)
-
-            is TaskUiEvent.OnDescriptionInputChange -> handleDescriptionInput(event.value)
-
-            is TaskUiEvent.OnSaveTask -> saveTask(
-                title = event.title,
-                description = event.description,
-                priority = event.priority
-            )
-
-            is TaskUiEvent.OnUpdateTask -> updateTask(
-                task = event.task,
-                title = event.title,
-                description = event.description,
-                priority = event.priority,
-            )
-
-            is TaskUiEvent.OnDeleteTask -> {}
+            is TaskUiEvent.TaskAction -> {
+                when (event) {
+                    is TaskUiEvent.TaskAction.ToggleComplete -> toggleTaskComplete(event.task)
+                    is TaskUiEvent.TaskAction.Delete -> { /*TODO() Implement Delete*/
+                    }
+                }
+            }
         }
     }
 
@@ -81,6 +79,24 @@ class TaskViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    private fun handleSaveAction() {
+        val state = _uiState.value
+        if (state.selectedTask != null) {
+            updateTask(
+                task = state.selectedTask,
+                title = state.taskTitleInput,
+                description = state.taskDescriptionInput,
+                priority = state.taskPriorityInput,
+            )
+        } else {
+            saveTask(
+                title = state.taskTitleInput,
+                description = state.taskDescriptionInput,
+                priority = state.taskPriorityInput
+            )
         }
     }
 
@@ -116,6 +132,16 @@ class TaskViewModel @Inject constructor(
         }
     }
 
+    private fun toggleTaskComplete(task: TaskEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val updatedTask = task.copy(
+                isComplete = !task.isComplete,
+                modifiedAt = System.currentTimeMillis()
+            )
+            repository.updateTask(updatedTask)
+        }
+    }
+
     private fun saveTask(
         title: String,
         description: String,
@@ -138,14 +164,12 @@ class TaskViewModel @Inject constructor(
         title: String,
         description: String,
         priority: Priority,
-        isComplete: Boolean = true,
         modifiedAt: Long = System.currentTimeMillis()
     ) {
         val updatedTask = task.copy(
             title = title,
             description = description,
             priority = priority,
-            isComplete = isComplete,
             modifiedAt = modifiedAt
         )
 
