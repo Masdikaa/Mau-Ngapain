@@ -1,6 +1,5 @@
 package com.masdika.maungapain.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.masdika.maungapain.data.local.entity.TaskEntity

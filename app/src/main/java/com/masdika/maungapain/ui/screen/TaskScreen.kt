@@ -1,5 +1,6 @@
 package com.masdika.maungapain.ui.screen
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -7,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -15,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_9_PRO
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,6 +59,7 @@ fun TaskScreen(
     } else {
         TaskContent(
             tasks = state.tasks,
+            isLoading = state.loading,
             onCreateTask = { viewModel.onEvent(TaskUiEvent.FormNavigation.OpenCreateForm) },
             onEditTask = { task -> viewModel.onEvent(TaskUiEvent.FormNavigation.OpenUpdateForm(task)) },
             onToggleComplete = { task ->
@@ -73,6 +78,7 @@ fun TaskScreen(
 @Composable
 fun TaskContent(
     tasks: List<TaskEntity>,
+    isLoading: Boolean,
     onCreateTask: () -> Unit,
     onEditTask: (TaskEntity) -> Unit,
     onToggleComplete: (TaskEntity) -> Unit,
@@ -81,9 +87,11 @@ fun TaskContent(
 ) {
     Scaffold(
         floatingActionButton = {
-            CreateTaskButton(
-                onCreateTask = onCreateTask
-            )
+            if (!isLoading) {
+                CreateTaskButton(
+                    onCreateTask = onCreateTask
+                )
+            }
         },
         modifier = modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -95,19 +103,45 @@ fun TaskContent(
                 .padding(it)
                 .padding(horizontal = 10.dp, vertical = 12.dp)
         ) {
-            Text(
-                text = "Task List",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(10.dp))
-            TaskList(
-                tasks = tasks,
-                onEditTask = { task -> onEditTask(task) },
-                onToggleComplete = { task -> onToggleComplete(task) },
-                onDeleteTask = { task -> onDeleteTask(task) }
-            )
+            when {
+                isLoading -> {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(40.dp))
+                    }
+                }
+
+                else -> {
+                    if (tasks.isEmpty()) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = "There's nothing Task to Show, Please create a Task! 😁",
+                                style = MaterialTheme.typography.titleLarge,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "Task List",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        TaskList(
+                            tasks = tasks,
+                            onEditTask = { task -> onEditTask(task) },
+                            onToggleComplete = { task -> onToggleComplete(task) },
+                            onDeleteTask = { task -> onDeleteTask(task) },
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -139,6 +173,7 @@ private fun TaskContentPreview() {
         )
         TaskContent(
             tasks = tasks,
+            isLoading = false,
             onCreateTask = {},
             onEditTask = {},
             onToggleComplete = {},
