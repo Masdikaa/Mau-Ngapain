@@ -1,11 +1,30 @@
 package com.masdika.maungapain.ui.screen.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.masdika.maungapain.data.local.entity.TaskEntity
@@ -17,6 +36,7 @@ fun TaskList(
     tasks: List<TaskEntity>,
     onEditTask: (TaskEntity) -> Unit,
     onToggleComplete: (TaskEntity) -> Unit,
+    onDeleteTask: (TaskEntity) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -27,11 +47,57 @@ fun TaskList(
             items = tasks,
             key = { it.id }
         ) { task ->
-            TaskItem(
-                task = task,
-                onEditTask = { onEditTask(task) },
-                onToggleComplete = { onToggleComplete(task) }
-            )
+            val dismissState = rememberSwipeToDismissBoxState()
+            LaunchedEffect(dismissState.targetValue) {
+                if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
+                    onDeleteTask(task)
+                    dismissState.reset()
+                }
+            }
+            SwipeToDismissBox(
+                state = dismissState,
+                backgroundContent = {
+                    Card(
+                        modifier = Modifier.fillMaxSize(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 0.dp
+                        )
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = "Delete\n${task.title}",
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.End
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onError,
+                                modifier = Modifier
+                                    .size(35.dp)
+                                    .padding(end = 10.dp)
+                            )
+                        }
+                    }
+                },
+                enableDismissFromStartToEnd = false,
+                modifier = Modifier.animateItem()
+            ) {
+                TaskItem(
+                    task = task,
+                    onEditTask = { onEditTask(task) },
+                    onToggleComplete = { onToggleComplete(task) }
+                )
+            }
         }
     }
 }
@@ -60,7 +126,8 @@ private fun TaskListPreview() {
         TaskList(
             tasks = tasks,
             onEditTask = {},
-            onToggleComplete = {}
+            onToggleComplete = {},
+            onDeleteTask = {}
         )
     }
 }

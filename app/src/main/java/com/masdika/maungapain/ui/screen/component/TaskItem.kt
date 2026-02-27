@@ -95,7 +95,7 @@ fun TaskItem(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(35.dp)
+                        .size(32.dp)
                         .clip(
                             shape = CircleShape
                         )
@@ -107,7 +107,7 @@ fun TaskItem(
                     Icon(
                         imageVector = Icons.Default.CheckCircleOutline,
                         contentDescription = null,
-                        modifier = Modifier.size(30.dp),
+                        modifier = Modifier.size(26.dp),
                         tint = checkIconTint
                     )
                 }

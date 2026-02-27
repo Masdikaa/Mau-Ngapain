@@ -1,5 +1,6 @@
 package com.masdika.maungapain.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.masdika.maungapain.data.local.entity.TaskEntity
@@ -49,8 +50,7 @@ class TaskViewModel @Inject constructor(
             is TaskUiEvent.TaskAction -> {
                 when (event) {
                     is TaskUiEvent.TaskAction.ToggleComplete -> toggleTaskComplete(event.task)
-                    is TaskUiEvent.TaskAction.Delete -> { /*TODO() Implement Delete*/
-                    }
+                    is TaskUiEvent.TaskAction.Delete -> deleteTask(event.task)
                 }
             }
         }
@@ -176,6 +176,14 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateTask(updatedTask)
             closeTaskInputForm()
+        }
+    }
+
+    private fun deleteTask(
+        task: TaskEntity
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteTask(task)
         }
     }
 
