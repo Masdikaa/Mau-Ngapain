@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.masdika.maungapain.data.local.enum.Priority
-import com.masdika.maungapain.ui.theme.MauNgapainTheme
 import com.masdika.maungapain.ui.screen.TaskUiState
+import com.masdika.maungapain.ui.theme.MauNgapainTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +45,6 @@ fun TaskInputForm(
     onCancel: () -> Unit,
     isUpdateMode: Boolean
 ) {
-//    val isUpdateMode = state.selectedTask != null
     val selectedPriorityIndex = state.taskPriorityInput.ordinal
 
     Dialog(
@@ -75,6 +74,17 @@ fun TaskInputForm(
                 value = state.taskTitleInput,
                 onValueChange = onTitleChange,
                 label = { Text("Title") },
+                placeholder = { Text("Enter task title...") },
+                isError = state.titleError != null,
+                supportingText = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(state.titleError ?: "* Required")
+                        Text("${state.taskTitleInput.length}/50")
+                    }
+                },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -85,6 +95,16 @@ fun TaskInputForm(
                 value = state.taskDescriptionInput,
                 onValueChange = onDescriptionChange,
                 label = { Text("Description") },
+                isError = state.descriptionError != null,
+                supportingText = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(state.descriptionError ?: "Optional")
+                        Text("${state.taskDescriptionInput.length}/500")
+                    }
+                },
                 singleLine = false,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,11 +163,14 @@ fun TaskInputForm(
                 Spacer(Modifier.width(15.dp))
                 Button(
                     onClick = onSave,
-                    enabled = !state.actionLoading && state.taskTitleInput.isNotBlank(),
+                    enabled = !state.actionLoading && state.isInputValid,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     if (state.actionLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
                         Spacer(Modifier.width(8.dp))
                     }
                     Text(

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -74,7 +75,9 @@ class TaskViewModel @Inject constructor(
                             errorMessage = exception.message
                         )
                     }
-                }.collect { taskList ->
+                }
+                .flowOn(Dispatchers.IO)
+                .collect { taskList ->
                     _uiState.update {
                         it.copy(
                             tasks = taskList,
@@ -134,7 +137,10 @@ class TaskViewModel @Inject constructor(
                 isFormVisible = false,
                 taskTitleInput = "",
                 taskDescriptionInput = "",
-                taskPriorityInput = Priority.MEDIUM
+                taskPriorityInput = Priority.MEDIUM,
+                titleError = null,
+                descriptionError = null,
+                isInputValid = false
             )
         }
     }
@@ -229,18 +235,25 @@ class TaskViewModel @Inject constructor(
     }
 
     private fun handleTitleInput(newTitle: String) {
-        _uiState.update {
-            it.copy(
-                taskTitleInput = newTitle
-            )
+        if (newTitle.length <= 50) {
+            _uiState.update {
+                it.copy(
+                    taskTitleInput = newTitle,
+                    titleError = if (newTitle.isBlank()) "Title cannot be empty" else null
+                )
+            }
+            validateInput()
         }
     }
 
-    private fun handleDescriptionInput(newTitle: String) {
-        _uiState.update {
-            it.copy(
-                taskDescriptionInput = newTitle
-            )
+    private fun handleDescriptionInput(newDescription: String) {
+        if (newDescription.length <= 500) {
+            _uiState.update {
+                it.copy(
+                    taskDescriptionInput = newDescription,
+                )
+            }
+            validateInput()
         }
     }
 
@@ -248,6 +261,14 @@ class TaskViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 taskPriorityInput = newPriority
+            )
+        }
+    }
+
+    private fun validateInput() {
+        _uiState.update {
+            it.copy(
+                isInputValid = it.taskTitleInput.isNotBlank() && it.titleError == null && it.descriptionError == null
             )
         }
     }
