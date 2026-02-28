@@ -1,5 +1,6 @@
 package com.masdika.maungapain.ui.screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.masdika.maungapain.data.local.entity.TaskEntity
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -86,20 +88,22 @@ class TaskViewModel @Inject constructor(
     }
 
     private fun handleSaveAction() {
-        val state = _uiState.value
-        if (state.selectedTask != null) {
-            updateTask(
-                task = state.selectedTask,
-                title = state.taskTitleInput,
-                description = state.taskDescriptionInput,
-                priority = state.taskPriorityInput,
-            )
-        } else {
-            saveTask(
-                title = state.taskTitleInput,
-                description = state.taskDescriptionInput,
-                priority = state.taskPriorityInput
-            )
+        _uiState.update { currentState ->
+            if (currentState.selectedTask != null) {
+                updateTask(
+                    task = currentState.selectedTask,
+                    title = currentState.taskTitleInput,
+                    description = currentState.taskDescriptionInput,
+                    priority = currentState.taskPriorityInput,
+                )
+            } else {
+                saveTask(
+                    title = currentState.taskTitleInput,
+                    description = currentState.taskDescriptionInput,
+                    priority = currentState.taskPriorityInput
+                )
+            }
+            currentState
         }
     }
 
@@ -160,6 +164,7 @@ class TaskViewModel @Inject constructor(
             repository.insertTask(newTask)
             closeTaskInputForm()
             _uiSideEffect.send(TaskUiSideEffect.ShowSnackBar("Successfully saved task \"${newTask.title}\""))
+            Log.i("Insert Task", "Insert Task : ${Date()}")
         }
     }
 
@@ -183,12 +188,21 @@ class TaskViewModel @Inject constructor(
         }
     }
 
-    private fun deleteTask(
-        task: TaskEntity
-    ) {
+    private fun deleteTask(task: TaskEntity) {
+        val currentState = _uiState.value
+        if (currentState.loading) return
+
         viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteTask(task)
-            _uiSideEffect.send(TaskUiSideEffect.ShowSnackBar("Successfully deleted task \"${task.title}\""))
+            _uiState.update { it.copy(loading = true) }
+            try {
+                repository.deleteTask(task)
+                _uiSideEffect.send(TaskUiSideEffect.ShowSnackBar("Successfully deleted task \"${task.title}\""))
+                Log.i("ViewModel-deleteTask", "Delete ${task.title} - ${Date()}")
+            } catch (e: Exception) {
+                Log.i("ViewModel-deleteTask", e.message.toString())
+            } finally {
+                _uiState.update { it.copy(loading = false) }
+            }
         }
     }
 

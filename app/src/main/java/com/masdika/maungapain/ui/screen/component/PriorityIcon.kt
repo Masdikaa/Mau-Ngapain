@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.masdika.maungapain.data.local.enum.Priority
+import com.masdika.maungapain.ui.theme.Orange
 
 @Composable
 fun PriorityIcon(
@@ -15,7 +16,7 @@ fun PriorityIcon(
 ) {
     val iconColor = when (priority) {
         Priority.HIGH -> Color.Red
-        Priority.MEDIUM -> Color(0xFFFFA500)
+        Priority.MEDIUM -> Orange
         Priority.LOW -> Color.Green
     }
 

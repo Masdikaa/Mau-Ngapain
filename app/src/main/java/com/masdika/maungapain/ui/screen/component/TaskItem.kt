@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
@@ -37,6 +38,7 @@ import com.masdika.maungapain.ui.theme.MauNgapainTheme
 @Composable
 fun TaskItem(
     task: TaskEntity,
+    enabled: Boolean,
     onEditTask: (TaskEntity) -> Unit,
     onToggleComplete: (TaskEntity) -> Unit,
 ) {
@@ -45,6 +47,7 @@ fun TaskItem(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
+        enabled = enabled,
         onClick = { onEditTask(task) }
     ) {
         Row(
@@ -100,8 +103,10 @@ fun TaskItem(
                             shape = CircleShape
                         )
                         .clickable(
+                            enabled = enabled,
                             onClick = { onToggleComplete(task) }
                         )
+                        .alpha(if (enabled) 1f else 0.5f)
                         .background(checkBackgroundColor)
                 ) {
                     Icon(
@@ -128,6 +133,7 @@ private fun TaskItemPreview() {
         )
         TaskItem(
             task = task,
+            enabled = true,
             onEditTask = {},
             onToggleComplete = {}
         )

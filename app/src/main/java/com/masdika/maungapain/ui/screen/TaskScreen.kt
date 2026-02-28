@@ -3,7 +3,6 @@ package com.masdika.maungapain.ui.screen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,45 +48,87 @@ fun TaskScreen(
         viewModel.uiSideEffect.collect { effect ->
             when (effect) {
                 is TaskUiSideEffect.ShowSnackBar -> {
+                    snackBarHostState.currentSnackbarData?.dismiss()
                     snackBarHostState.showSnackbar(effect.message)
                 }
             }
         }
     }
 
-    if (state.isFormVisible) {
-        TaskInputForm(
-            state = state,
-            onTitleChange = { title ->
-                viewModel.onEvent(TaskUiEvent.InputForm.TitleChanged(title))
-            },
-            onDescriptionChange = { description ->
-                viewModel.onEvent(TaskUiEvent.InputForm.DescriptionChanged(description))
-            },
-            onPriorityChange = { priority ->
-                viewModel.onEvent(TaskUiEvent.InputForm.PriorityChanged(priority))
-            },
-            onCancel = { viewModel.onEvent(TaskUiEvent.InputForm.Cancel) },
-            onSave = { viewModel.onEvent(TaskUiEvent.InputForm.Save) },
-            isUpdateMode = state.selectedTask != null,
-        )
-    } else {
-        TaskContent(
-            tasks = state.tasks,
-            isLoading = state.loading,
-            onCreateTask = { viewModel.onEvent(TaskUiEvent.FormNavigation.OpenCreateForm) },
-            onEditTask = { task -> viewModel.onEvent(TaskUiEvent.FormNavigation.OpenUpdateForm(task)) },
-            onToggleComplete = { task ->
-                viewModel.onEvent(
-                    TaskUiEvent.TaskAction.ToggleComplete(
-                        task
-                    )
+    // Single Scaffold Principle
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = {
+            SnackbarHost(hostState = snackBarHostState) { data ->
+                Snackbar(
+                    shape = MaterialTheme.shapes.small,
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    snackbarData = data
                 )
-            },
-            onDeleteTask = { task -> viewModel.onEvent(TaskUiEvent.TaskAction.Delete(task)) },
-            snackBarHostState = snackBarHostState,
-            modifier = modifier
-        )
+            }
+        },
+        floatingActionButton = {
+            if (!state.isFormVisible && !state.loading) {
+                CreateTaskButton(
+                    onCreateTask = { viewModel.onEvent(TaskUiEvent.FormNavigation.OpenCreateForm) }
+                )
+            }
+        },
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            if (state.isFormVisible) {
+                TaskInputForm(
+                    state = state,
+                    onTitleChange = { title ->
+                        viewModel.onEvent(TaskUiEvent.InputForm.TitleChanged(title))
+                    },
+                    onDescriptionChange = { description ->
+                        viewModel.onEvent(
+                            TaskUiEvent.InputForm.DescriptionChanged(
+                                description
+                            )
+                        )
+                    },
+                    onPriorityChange = { priority ->
+                        viewModel.onEvent(TaskUiEvent.InputForm.PriorityChanged(priority))
+                    },
+                    onCancel = { viewModel.onEvent(TaskUiEvent.InputForm.Cancel) },
+                    onSave = { viewModel.onEvent(TaskUiEvent.InputForm.Save) },
+                    isUpdateMode = state.selectedTask != null,
+                )
+            } else {
+                TaskContent(
+                    tasks = state.tasks,
+                    isLoading = state.loading,
+                    onEditTask = { task ->
+                        viewModel.onEvent(
+                            TaskUiEvent.FormNavigation.OpenUpdateForm(
+                                task
+                            )
+                        )
+                    },
+                    onToggleComplete = { task ->
+                        viewModel.onEvent(
+                            TaskUiEvent.TaskAction.ToggleComplete(
+                                task
+                            )
+                        )
+                    },
+                    onDeleteTask = { task ->
+                        viewModel.onEvent(
+                            TaskUiEvent.TaskAction.Delete(
+                                task
+                            )
+                        )
+                    },
+                )
+            }
+        }
     }
 }
 
@@ -95,85 +136,57 @@ fun TaskScreen(
 fun TaskContent(
     tasks: List<TaskEntity>,
     isLoading: Boolean,
-    onCreateTask: () -> Unit,
     onEditTask: (TaskEntity) -> Unit,
     onToggleComplete: (TaskEntity) -> Unit,
     onDeleteTask: (TaskEntity) -> Unit,
-    snackBarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
-        floatingActionButton = {
-            if (!isLoading) {
-                CreateTaskButton(
-                    onCreateTask = onCreateTask
-                )
-            }
-        },
-        modifier = modifier.fillMaxSize(),
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        snackbarHost = {
-            SnackbarHost(hostState = snackBarHostState) { data ->
-                Snackbar(
-                    shape = MaterialTheme.shapes.small,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    snackbarData = data
-                )
-            }
-        }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 10.dp, vertical = 12.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-                .padding(horizontal = 10.dp, vertical = 12.dp)
-        ) {
-            when {
-                isLoading -> {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(40.dp))
-                    }
-                }
-
-                else -> {
-                    if (tasks.isEmpty()) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Text(
-                                text = "There are no tasks to display here, Please create a new task! 😁",
-                                style = MaterialTheme.typography.titleLarge,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    } else {
-                        Text(
-                            text = "Task List",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        HorizontalDivider(Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(10.dp))
-                        TaskList(
-                            tasks = tasks,
-                            onEditTask = { task -> onEditTask(task) },
-                            onToggleComplete = { task -> onToggleComplete(task) },
-                            onDeleteTask = { task -> onDeleteTask(task) },
-                        )
-                    }
-                }
+        if (isLoading) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
+        } else if (tasks.isEmpty()) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(
+                    text = "There are no tasks to display here, Please create a new task! 😁",
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            Text(
+                text = "Task List",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth()
+            )
+            HorizontalDivider(Modifier.fillMaxWidth())
+            Spacer(Modifier.height(10.dp))
+            TaskList(
+                tasks = tasks,
+                isLoading = isLoading,
+                onEditTask = { task -> onEditTask(task) },
+                onToggleComplete = { task -> onToggleComplete(task) },
+                onDeleteTask = { task -> onDeleteTask(task) },
+            )
         }
     }
 }
-
 
 @Preview(
     showBackground = true,
@@ -203,12 +216,10 @@ private fun TaskContentPreview() {
         Scaffold(modifier = Modifier.fillMaxSize()) {
             TaskContent(
                 tasks = tasks,
-                isLoading = false,
-                onCreateTask = {},
+                isLoading = true,
                 onEditTask = {},
                 onToggleComplete = {},
                 onDeleteTask = {},
-                snackBarHostState = remember { SnackbarHostState() },
                 modifier = Modifier.padding(it)
             )
         }
