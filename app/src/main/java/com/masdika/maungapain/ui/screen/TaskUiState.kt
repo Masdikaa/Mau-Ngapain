@@ -1,4 +1,4 @@
-package com.masdika.maungapain.ui.viewmodel
+package com.masdika.maungapain.ui.screen
 
 import com.masdika.maungapain.data.local.entity.TaskEntity
 import com.masdika.maungapain.data.local.enum.Priority

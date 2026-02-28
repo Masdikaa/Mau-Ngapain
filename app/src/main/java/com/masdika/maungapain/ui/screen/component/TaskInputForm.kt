@@ -30,7 +30,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.masdika.maungapain.data.local.enum.Priority
 import com.masdika.maungapain.ui.theme.MauNgapainTheme
-import com.masdika.maungapain.ui.viewmodel.TaskUiState
+import com.masdika.maungapain.ui.screen.TaskUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,4 +1,4 @@
-package com.masdika.maungapain.ui.viewmodel
+package com.masdika.maungapain.ui.screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
