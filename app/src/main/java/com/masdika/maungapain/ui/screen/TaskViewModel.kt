@@ -162,9 +162,12 @@ class TaskViewModel @Inject constructor(
     ) {
         if (_uiState.value.actionLoading) return
 
+        val titleTrim = title.trim()
+        val descriptionTrim = description.trim().takeIf { it.isNotBlank() }
+
         val newTask = TaskEntity(
-            title = title,
-            description = description,
+            title = titleTrim,
+            description = descriptionTrim,
             priority = priority
         )
 
@@ -192,9 +195,12 @@ class TaskViewModel @Inject constructor(
     ) {
         if (_uiState.value.actionLoading) return
 
+        val titleTrim = title.trim()
+        val descriptionTrim = description.trim().takeIf { it.isNotBlank() }
+
         val updatedTask = task.copy(
-            title = title,
-            description = description,
+            title = titleTrim,
+            description = descriptionTrim,
             priority = priority,
             modifiedAt = modifiedAt
         )

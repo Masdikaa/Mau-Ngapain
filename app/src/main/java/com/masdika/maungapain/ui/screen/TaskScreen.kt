@@ -8,7 +8,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,7 +31,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_9_PRO
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.masdika.maungapain.data.local.entity.TaskEntity
 import com.masdika.maungapain.data.local.enum.Priority
 import com.masdika.maungapain.ui.screen.component.CreateTaskButton
+import com.masdika.maungapain.ui.screen.component.EmptyState
 import com.masdika.maungapain.ui.screen.component.TaskInputForm
 import com.masdika.maungapain.ui.screen.component.TaskList
 import com.masdika.maungapain.ui.theme.MauNgapainTheme
@@ -163,7 +162,8 @@ fun TaskContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 10.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp)
+            .padding(top = 12.dp)
     ) {
         if (isLoading && tasks.isEmpty()) {
             Box(
@@ -184,16 +184,7 @@ fun TaskContent(
                 label = "TaskContentTransition"
             ) { isEmpty ->
                 if (isEmpty) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Text(
-                            text = "There are no tasks to display here, Please create a new task! 😁",
-                            style = MaterialTheme.typography.titleLarge,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    EmptyState()
                 } else {
                     Column {
                         Text(
@@ -202,17 +193,25 @@ fun TaskContent(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        if (isActionLoading) {
-                            LinearProgressIndicator(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(5.dp),
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(Modifier.height(5.dp))
-                        } else {
-                            HorizontalDivider(Modifier.fillMaxWidth())
-                            Spacer(Modifier.height(9.dp))
+                        Box(
+                            contentAlignment = Alignment.TopCenter,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(10.dp)
+                        ) {
+                            if (isActionLoading) {
+                                LinearProgressIndicator(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(5.dp),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            } else {
+                                HorizontalDivider(
+                                    thickness = 2.dp,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                         TaskList(
                             tasks = tasks,
@@ -229,9 +228,7 @@ fun TaskContent(
 }
 
 @Preview(
-    showBackground = true,
-    device = PIXEL_9_PRO,
-    showSystemUi = true
+    showBackground = true, device = PIXEL_9_PRO, showSystemUi = true
 )
 @Composable
 private fun TaskContentPreview() {

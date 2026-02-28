@@ -21,6 +21,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,17 +54,12 @@ fun TaskList(
         ) { task ->
             var isDismissed by remember { mutableStateOf(false) }
 
-            val dismissState = rememberSwipeToDismissBoxState(
-                confirmValueChange = { value ->
-                    if (value == SwipeToDismissBoxValue.EndToStart && !isActionLoading && !isDismissed) {
-                        isDismissed = true
-                        onDeleteTask(task)
-                        true
-                    } else {
-                        false
-                    }
+            val dismissState = rememberSwipeToDismissBoxState()
+            LaunchedEffect(dismissState.currentValue) {
+                if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart && !isDismissed) {
+                    onDeleteTask(task)
                 }
-            )
+            }
 
             SwipeToDismissBox(
                 state = dismissState,
@@ -88,7 +84,7 @@ fun TaskList(
                                 style = MaterialTheme.typography.bodySmall,
                                 textAlign = TextAlign.End
                             )
-                            Spacer(Modifier.width(5.dp))
+                            Spacer(Modifier.width(10.dp))
                             Icon(
                                 imageVector = Icons.Default.DeleteSweep,
                                 contentDescription = null,
@@ -106,7 +102,6 @@ fun TaskList(
             ) {
                 TaskItem(
                     task = task,
-                    enabled = !isActionLoading,
                     onEditTask = { onEditTask(task) },
                     onToggleComplete = { onToggleComplete(task) }
                 )
