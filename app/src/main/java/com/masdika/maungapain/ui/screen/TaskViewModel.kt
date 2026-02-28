@@ -7,10 +7,12 @@ import com.masdika.maungapain.data.local.enum.Priority
 import com.masdika.maungapain.data.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,6 +23,8 @@ class TaskViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TaskUiState())
     val uiState: StateFlow<TaskUiState> = _uiState.asStateFlow()
+    private val _uiSideEffect = Channel<TaskUiSideEffect>()
+    val uiSideEffect = _uiSideEffect.receiveAsFlow()
 
     init {
         observeTasks()
@@ -155,6 +159,7 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             repository.insertTask(newTask)
             closeTaskInputForm()
+            _uiSideEffect.send(TaskUiSideEffect.ShowSnackBar("Successfully saved task \"${newTask.title}\""))
         }
     }
 
@@ -183,6 +188,7 @@ class TaskViewModel @Inject constructor(
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteTask(task)
+            _uiSideEffect.send(TaskUiSideEffect.ShowSnackBar("Successfully deleted task \"${task.title}\""))
         }
     }
 
