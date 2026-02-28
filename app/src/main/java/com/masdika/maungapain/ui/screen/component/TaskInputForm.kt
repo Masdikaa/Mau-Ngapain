@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -141,8 +143,13 @@ fun TaskInputForm(
                 Spacer(Modifier.width(15.dp))
                 Button(
                     onClick = onSave,
+                    enabled = !state.actionLoading && state.taskTitleInput.isNotBlank(),
                     shape = RoundedCornerShape(8.dp)
                 ) {
+                    if (state.actionLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
+                    }
                     Text(
                         text = if (isUpdateMode) "Save Update" else "Save"
                     )

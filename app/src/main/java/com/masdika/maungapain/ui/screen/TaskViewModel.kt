@@ -154,6 +154,8 @@ class TaskViewModel @Inject constructor(
         description: String,
         priority: Priority
     ) {
+        if (_uiState.value.actionLoading) return
+
         val newTask = TaskEntity(
             title = title,
             description = description,
@@ -161,10 +163,17 @@ class TaskViewModel @Inject constructor(
         )
 
         viewModelScope.launch(Dispatchers.IO) {
-            repository.insertTask(newTask)
-            closeTaskInputForm()
-            _uiSideEffect.send(TaskUiSideEffect.ShowSnackBar("Successfully saved task \"${newTask.title}\""))
-            Log.i("Insert Task", "Insert Task : ${Date()}")
+            _uiState.update { it.copy(actionLoading = true) }
+            try {
+                repository.insertTask(newTask)
+                closeTaskInputForm()
+                Log.i("ViewModel-saveTask", "Saved ${newTask.title} - ${Date()}")
+            } catch (e: Exception) {
+                Log.e("ViewModel-saveTask", e.message.toString())
+            } finally {
+                _uiState.update { it.copy(actionLoading = false) }
+            }
+            _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully saved task \"${newTask.title}\""))
         }
     }
 
@@ -175,6 +184,8 @@ class TaskViewModel @Inject constructor(
         priority: Priority,
         modifiedAt: Long = System.currentTimeMillis()
     ) {
+        if (_uiState.value.actionLoading) return
+
         val updatedTask = task.copy(
             title = title,
             description = description,
@@ -183,26 +194,37 @@ class TaskViewModel @Inject constructor(
         )
 
         viewModelScope.launch(Dispatchers.IO) {
-            repository.updateTask(updatedTask)
-            closeTaskInputForm()
+            _uiState.update { it.copy(actionLoading = true) }
+            try {
+                repository.updateTask(updatedTask)
+                closeTaskInputForm()
+                Log.i(
+                    "ViewModel-updateTask",
+                    "Updated ${task.title} to ${updatedTask.title} - ${Date()}"
+                )
+            } catch (e: Exception) {
+                Log.e("ViewModel-updateTask", e.message.toString())
+            } finally {
+                _uiState.update { it.copy(actionLoading = false) }
+            }
+            _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully updated task \"${updatedTask.title}\""))
         }
     }
 
     private fun deleteTask(task: TaskEntity) {
-        val currentState = _uiState.value
-        if (currentState.loading) return
+        if (_uiState.value.actionLoading) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(loading = true) }
+            _uiState.update { it.copy(actionLoading = true) }
             try {
                 repository.deleteTask(task)
-                _uiSideEffect.send(TaskUiSideEffect.ShowSnackBar("Successfully deleted task \"${task.title}\""))
-                Log.i("ViewModel-deleteTask", "Delete ${task.title} - ${Date()}")
+                Log.i("ViewModel-deleteTask", "Deleted ${task.title} - ${Date()}")
             } catch (e: Exception) {
-                Log.i("ViewModel-deleteTask", e.message.toString())
+                Log.e("ViewModel-deleteTask", e.message.toString())
             } finally {
-                _uiState.update { it.copy(loading = false) }
+                _uiState.update { it.copy(actionLoading = false) }
             }
+            _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully deleted task \"${task.title}\""))
         }
     }
 

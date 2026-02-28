@@ -1,5 +1,11 @@
 package com.masdika.maungapain.ui.screen
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,9 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -20,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +44,7 @@ import com.masdika.maungapain.ui.screen.component.CreateTaskButton
 import com.masdika.maungapain.ui.screen.component.TaskInputForm
 import com.masdika.maungapain.ui.screen.component.TaskList
 import com.masdika.maungapain.ui.theme.MauNgapainTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun TaskScreen(
@@ -43,13 +53,19 @@ fun TaskScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(true) {
         viewModel.uiSideEffect.collect { effect ->
             when (effect) {
                 is TaskUiSideEffect.ShowSnackBar -> {
-                    snackBarHostState.currentSnackbarData?.dismiss()
-                    snackBarHostState.showSnackbar(effect.message)
+                    scope.launch {
+                        snackBarHostState.currentSnackbarData?.dismiss()
+                        snackBarHostState.showSnackbar(
+                            message = effect.message,
+                            duration = SnackbarDuration.Short
+                        )
+                    }
                 }
             }
         }
@@ -69,7 +85,7 @@ fun TaskScreen(
             }
         },
         floatingActionButton = {
-            if (!state.isFormVisible && !state.loading) {
+            if (!state.isFormVisible && !state.actionLoading) {
                 CreateTaskButton(
                     onCreateTask = { viewModel.onEvent(TaskUiEvent.FormNavigation.OpenCreateForm) }
                 )
@@ -105,6 +121,7 @@ fun TaskScreen(
                 TaskContent(
                     tasks = state.tasks,
                     isLoading = state.loading,
+                    isActionLoading = state.actionLoading,
                     onEditTask = { task ->
                         viewModel.onEvent(
                             TaskUiEvent.FormNavigation.OpenUpdateForm(
@@ -136,6 +153,7 @@ fun TaskScreen(
 fun TaskContent(
     tasks: List<TaskEntity>,
     isLoading: Boolean,
+    isActionLoading: Boolean,
     onEditTask: (TaskEntity) -> Unit,
     onToggleComplete: (TaskEntity) -> Unit,
     onDeleteTask: (TaskEntity) -> Unit,
@@ -147,43 +165,65 @@ fun TaskContent(
             .fillMaxSize()
             .padding(horizontal = 10.dp, vertical = 12.dp)
     ) {
-        if (isLoading) {
+        if (isLoading && tasks.isEmpty()) {
             Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
+                Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(40.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        } else if (tasks.isEmpty()) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text(
-                    text = "There are no tasks to display here, Please create a new task! 😁",
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
-                )
+                CircularProgressIndicator(modifier = Modifier.size(40.dp))
             }
         } else {
-            Text(
-                text = "Task List",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth()
-            )
-            HorizontalDivider(Modifier.fillMaxWidth())
-            Spacer(Modifier.height(10.dp))
-            TaskList(
-                tasks = tasks,
-                isLoading = isLoading,
-                onEditTask = { task -> onEditTask(task) },
-                onToggleComplete = { task -> onToggleComplete(task) },
-                onDeleteTask = { task -> onDeleteTask(task) },
-            )
+            AnimatedContent(
+                targetState = tasks.isEmpty(),
+                transitionSpec = {
+                    (
+                            fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.95f)).togetherWith(
+                        fadeOut(animationSpec = tween(200))
+                    )
+                },
+                label = "TaskContentTransition"
+            ) { isEmpty ->
+                if (isEmpty) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = "There are no tasks to display here, Please create a new task! 😁",
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    Column {
+                        Text(
+                            text = "Task List",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (isActionLoading) {
+                            LinearProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(5.dp),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.height(5.dp))
+                        } else {
+                            HorizontalDivider(Modifier.fillMaxWidth())
+                            Spacer(Modifier.height(9.dp))
+                        }
+                        TaskList(
+                            tasks = tasks,
+                            isActionLoading = isActionLoading,
+                            onEditTask = { task -> onEditTask(task) },
+                            onToggleComplete = { task -> onToggleComplete(task) },
+                            onDeleteTask = { task -> onDeleteTask(task) },
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -216,7 +256,8 @@ private fun TaskContentPreview() {
         Scaffold(modifier = Modifier.fillMaxSize()) {
             TaskContent(
                 tasks = tasks,
-                isLoading = true,
+                isLoading = false,
+                isActionLoading = false,
                 onEditTask = {},
                 onToggleComplete = {},
                 onDeleteTask = {},

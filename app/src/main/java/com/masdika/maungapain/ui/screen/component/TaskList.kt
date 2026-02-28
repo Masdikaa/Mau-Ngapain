@@ -21,6 +21,10 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -33,7 +37,7 @@ import com.masdika.maungapain.ui.theme.MauNgapainTheme
 @Composable
 fun TaskList(
     tasks: List<TaskEntity>,
-    isLoading: Boolean,
+    isActionLoading: Boolean,
     onEditTask: (TaskEntity) -> Unit,
     onToggleComplete: (TaskEntity) -> Unit,
     onDeleteTask: (TaskEntity) -> Unit,
@@ -47,9 +51,12 @@ fun TaskList(
             items = tasks,
             key = { it.id }
         ) { task ->
+            var isDismissed by remember { mutableStateOf(false) }
+
             val dismissState = rememberSwipeToDismissBoxState(
                 confirmValueChange = { value ->
-                    if (!isLoading && value == SwipeToDismissBoxValue.EndToStart) {
+                    if (value == SwipeToDismissBoxValue.EndToStart && !isActionLoading && !isDismissed) {
+                        isDismissed = true
                         onDeleteTask(task)
                         true
                     } else {
@@ -93,13 +100,13 @@ fun TaskList(
                         }
                     }
                 },
-                enableDismissFromEndToStart = !isLoading,
+                enableDismissFromEndToStart = !isActionLoading,
                 enableDismissFromStartToEnd = false,
                 modifier = Modifier.animateItem()
             ) {
                 TaskItem(
                     task = task,
-                    enabled = !isLoading,
+                    enabled = !isActionLoading,
                     onEditTask = { onEditTask(task) },
                     onToggleComplete = { onToggleComplete(task) }
                 )
@@ -131,7 +138,7 @@ private fun TaskListPreview() {
         )
         TaskList(
             tasks = tasks,
-            isLoading = false,
+            isActionLoading = false,
             onEditTask = {},
             onToggleComplete = {},
             onDeleteTask = {}

@@ -11,6 +11,7 @@ data class TaskUiState(
     val taskPriorityInput: Priority = Priority.MEDIUM,
     val isFormVisible: Boolean = false,
     val loading: Boolean = false,
+    val actionLoading: Boolean = false,
     val isError: Boolean = false,
     val errorMessage: String? = null
 )
