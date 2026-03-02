@@ -43,7 +43,8 @@ fun TaskInputForm(
     onPriorityChange: (Priority) -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit,
-    isUpdateMode: Boolean
+    isUpdateMode: Boolean,
+    modifier: Modifier = Modifier
 ) {
     val selectedPriorityIndex = state.taskPriorityInput.ordinal
 
@@ -57,7 +58,7 @@ fun TaskInputForm(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .clip(
                     shape = RoundedCornerShape(12.dp)

@@ -1,6 +1,5 @@
 package com.masdika.maungapain.ui.screen
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.masdika.maungapain.data.local.entity.TaskEntity
@@ -17,7 +16,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -82,8 +80,6 @@ class TaskViewModel @Inject constructor(
                         it.copy(
                             tasks = taskList,
                             loading = false,
-                            isError = false,
-                            errorMessage = null
                         )
                     }
                 }
@@ -176,13 +172,12 @@ class TaskViewModel @Inject constructor(
             try {
                 repository.insertTask(newTask)
                 closeTaskInputForm()
-                Log.i("ViewModel-saveTask", "Saved ${newTask.title} - ${Date()}")
+                _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully saved task \"${newTask.title}\""))
             } catch (e: Exception) {
-                Log.e("ViewModel-saveTask", e.message.toString())
+                _uiState.update { it.copy(isError = true, errorMessage = e.message) }
             } finally {
                 _uiState.update { it.copy(actionLoading = false) }
             }
-            _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully saved task \"${newTask.title}\""))
         }
     }
 
@@ -210,16 +205,12 @@ class TaskViewModel @Inject constructor(
             try {
                 repository.updateTask(updatedTask)
                 closeTaskInputForm()
-                Log.i(
-                    "ViewModel-updateTask",
-                    "Updated ${task.title} to ${updatedTask.title} - ${Date()}"
-                )
+                _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully updated task \"${updatedTask.title}\""))
             } catch (e: Exception) {
-                Log.e("ViewModel-updateTask", e.message.toString())
+                _uiState.update { it.copy(isError = true, errorMessage = e.message) }
             } finally {
                 _uiState.update { it.copy(actionLoading = false) }
             }
-            _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully updated task \"${updatedTask.title}\""))
         }
     }
 
@@ -230,13 +221,12 @@ class TaskViewModel @Inject constructor(
             _uiState.update { it.copy(actionLoading = true) }
             try {
                 repository.deleteTask(task)
-                Log.i("ViewModel-deleteTask", "Deleted ${task.title} - ${Date()}")
+                _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully deleted task \"${task.title}\""))
             } catch (e: Exception) {
-                Log.e("ViewModel-deleteTask", e.message.toString())
+                _uiState.update { it.copy(isError = true, errorMessage = e.message) }
             } finally {
                 _uiState.update { it.copy(actionLoading = false) }
             }
-            _uiSideEffect.trySend(TaskUiSideEffect.ShowSnackBar("Successfully deleted task \"${task.title}\""))
         }
     }
 

@@ -107,7 +107,7 @@ fun TaskItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircleOutline,
-                        contentDescription = null,
+                        contentDescription = "Finish task check icon",
                         modifier = Modifier.size(26.dp),
                         tint = checkIconTint
                     )

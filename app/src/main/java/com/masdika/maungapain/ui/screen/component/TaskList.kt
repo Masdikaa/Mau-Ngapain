@@ -87,7 +87,7 @@ fun TaskList(
                             Spacer(Modifier.width(10.dp))
                             Icon(
                                 imageVector = Icons.Default.DeleteSweep,
-                                contentDescription = null,
+                                contentDescription = "Finish task checkbox",
                                 tint = MaterialTheme.colorScheme.onError,
                                 modifier = Modifier
                                     .size(35.dp)

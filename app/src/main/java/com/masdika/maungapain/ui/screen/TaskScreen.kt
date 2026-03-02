@@ -40,6 +40,7 @@ import com.masdika.maungapain.data.local.entity.TaskEntity
 import com.masdika.maungapain.data.local.enum.Priority
 import com.masdika.maungapain.ui.screen.component.CreateTaskButton
 import com.masdika.maungapain.ui.screen.component.EmptyState
+import com.masdika.maungapain.ui.screen.component.ErrorState
 import com.masdika.maungapain.ui.screen.component.TaskInputForm
 import com.masdika.maungapain.ui.screen.component.TaskList
 import com.masdika.maungapain.ui.theme.MauNgapainTheme
@@ -47,7 +48,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun TaskScreen(
-    modifier: Modifier = Modifier,
     viewModel: TaskViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -72,7 +72,7 @@ fun TaskScreen(
 
     // Single Scaffold Principle
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         snackbarHost = {
             SnackbarHost(hostState = snackBarHostState) { data ->
                 Snackbar(
@@ -84,66 +84,67 @@ fun TaskScreen(
             }
         },
         floatingActionButton = {
-            if (!state.isFormVisible && !state.actionLoading) {
+            if (!state.isError && !state.isFormVisible && !state.actionLoading) {
                 CreateTaskButton(
                     onCreateTask = { viewModel.onEvent(TaskUiEvent.FormNavigation.OpenCreateForm) }
                 )
             }
         },
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
-            if (state.isFormVisible) {
-                TaskInputForm(
-                    state = state,
-                    onTitleChange = { title ->
-                        viewModel.onEvent(TaskUiEvent.InputForm.TitleChanged(title))
-                    },
-                    onDescriptionChange = { description ->
-                        viewModel.onEvent(
-                            TaskUiEvent.InputForm.DescriptionChanged(
-                                description
-                            )
+        if (state.isError) {
+            ErrorState(
+                errorMessage = state.errorMessage,
+                modifier = Modifier.padding(innerPadding)
+            )
+        } else if (state.isFormVisible) {
+            TaskInputForm(
+                state = state,
+                onTitleChange = { title ->
+                    viewModel.onEvent(TaskUiEvent.InputForm.TitleChanged(title))
+                },
+                onDescriptionChange = { description ->
+                    viewModel.onEvent(
+                        TaskUiEvent.InputForm.DescriptionChanged(
+                            description
                         )
-                    },
-                    onPriorityChange = { priority ->
-                        viewModel.onEvent(TaskUiEvent.InputForm.PriorityChanged(priority))
-                    },
-                    onCancel = { viewModel.onEvent(TaskUiEvent.InputForm.Cancel) },
-                    onSave = { viewModel.onEvent(TaskUiEvent.InputForm.Save) },
-                    isUpdateMode = state.selectedTask != null,
-                )
-            } else {
-                TaskContent(
-                    tasks = state.tasks,
-                    isLoading = state.loading,
-                    isActionLoading = state.actionLoading,
-                    onEditTask = { task ->
-                        viewModel.onEvent(
-                            TaskUiEvent.FormNavigation.OpenUpdateForm(
-                                task
-                            )
+                    )
+                },
+                onPriorityChange = { priority ->
+                    viewModel.onEvent(TaskUiEvent.InputForm.PriorityChanged(priority))
+                },
+                onCancel = { viewModel.onEvent(TaskUiEvent.InputForm.Cancel) },
+                onSave = { viewModel.onEvent(TaskUiEvent.InputForm.Save) },
+                isUpdateMode = state.selectedTask != null,
+                modifier = Modifier.padding(innerPadding)
+            )
+        } else {
+            TaskContent(
+                tasks = state.tasks,
+                isLoading = state.loading,
+                isActionLoading = state.actionLoading,
+                onEditTask = { task ->
+                    viewModel.onEvent(
+                        TaskUiEvent.FormNavigation.OpenUpdateForm(
+                            task
                         )
-                    },
-                    onToggleComplete = { task ->
-                        viewModel.onEvent(
-                            TaskUiEvent.TaskAction.ToggleComplete(
-                                task
-                            )
+                    )
+                },
+                onToggleComplete = { task ->
+                    viewModel.onEvent(
+                        TaskUiEvent.TaskAction.ToggleComplete(
+                            task
                         )
-                    },
-                    onDeleteTask = { task ->
-                        viewModel.onEvent(
-                            TaskUiEvent.TaskAction.Delete(
-                                task
-                            )
+                    )
+                },
+                onDeleteTask = { task ->
+                    viewModel.onEvent(
+                        TaskUiEvent.TaskAction.Delete(
+                            task
                         )
-                    },
-                )
-            }
+                    )
+                },
+                modifier = Modifier.padding(innerPadding)
+            )
         }
     }
 }
@@ -228,7 +229,9 @@ fun TaskContent(
 }
 
 @Preview(
-    showBackground = true, device = PIXEL_9_PRO, showSystemUi = true
+    showBackground = true,
+    device = PIXEL_9_PRO,
+    showSystemUi = true
 )
 @Composable
 private fun TaskContentPreview() {
