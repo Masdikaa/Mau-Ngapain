@@ -1,6 +1,10 @@
 package com.masdika.maungapain.ui.screen.component
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,7 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material3.Card
@@ -42,11 +48,14 @@ fun TaskList(
     onEditTask: (TaskEntity) -> Unit,
     onToggleComplete: (TaskEntity) -> Unit,
     onDeleteTask: (TaskEntity) -> Unit,
+    listState: LazyListState,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(bottom = 40.dp),
+        modifier = modifier.fillMaxWidth()
     ) {
         items(
             items = tasks,
@@ -63,6 +72,16 @@ fun TaskList(
 
             SwipeToDismissBox(
                 state = dismissState,
+                enableDismissFromEndToStart = !isActionLoading,
+                enableDismissFromStartToEnd = false,
+                modifier = Modifier
+                    .animateItem()
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ),
                 backgroundContent = {
                     Card(
                         modifier = Modifier.fillMaxSize(),
@@ -95,10 +114,7 @@ fun TaskList(
                             )
                         }
                     }
-                },
-                enableDismissFromEndToStart = !isActionLoading,
-                enableDismissFromStartToEnd = false,
-                modifier = Modifier.animateItem()
+                }
             ) {
                 TaskItem(
                     task = task,
@@ -117,7 +133,7 @@ private fun TaskListPreview() {
         val tasks = listOf(
             TaskEntity(
                 title = "Task 1",
-                description = "Description Task 1",
+                description = "Description Task 1 \nTest \nLong \nDescription",
                 priority = Priority.LOW
             ),
             TaskEntity(
@@ -136,7 +152,8 @@ private fun TaskListPreview() {
             isActionLoading = false,
             onEditTask = {},
             onToggleComplete = {},
-            onDeleteTask = {}
+            onDeleteTask = {},
+            listState = rememberLazyListState()
         )
     }
 }

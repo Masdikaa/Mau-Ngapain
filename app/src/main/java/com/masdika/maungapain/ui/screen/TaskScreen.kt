@@ -1,6 +1,7 @@
 package com.masdika.maungapain.ui.screen
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
@@ -25,6 +28,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,6 +57,10 @@ fun TaskScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val fabVisibility by remember {
+        derivedStateOf { !listState.isScrollInProgress }
+    }
 
     LaunchedEffect(true) {
         viewModel.uiSideEffect.collect { effect ->
@@ -84,10 +92,16 @@ fun TaskScreen(
             }
         },
         floatingActionButton = {
-            if (!state.isError && !state.isFormVisible && !state.actionLoading) {
-                CreateTaskButton(
-                    onCreateTask = { viewModel.onEvent(TaskUiEvent.FormNavigation.OpenCreateForm) }
-                )
+            AnimatedVisibility(
+                visible = fabVisibility,
+                enter = fadeIn(animationSpec = tween(durationMillis = 300)),
+                exit = fadeOut(animationSpec = tween(durationMillis = 300))
+            ) {
+                if (!state.isError && !state.isFormVisible && !state.actionLoading) {
+                    CreateTaskButton(
+                        onCreateTask = { viewModel.onEvent(TaskUiEvent.FormNavigation.OpenCreateForm) }
+                    )
+                }
             }
         },
     ) { innerPadding ->
@@ -143,6 +157,7 @@ fun TaskScreen(
                         )
                     )
                 },
+                listState = listState,
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -157,6 +172,7 @@ fun TaskContent(
     onEditTask: (TaskEntity) -> Unit,
     onToggleComplete: (TaskEntity) -> Unit,
     onDeleteTask: (TaskEntity) -> Unit,
+    listState: LazyListState,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -220,6 +236,7 @@ fun TaskContent(
                             onEditTask = { task -> onEditTask(task) },
                             onToggleComplete = { task -> onToggleComplete(task) },
                             onDeleteTask = { task -> onDeleteTask(task) },
+                            listState = listState
                         )
                     }
                 }
@@ -261,6 +278,7 @@ private fun TaskContentPreview() {
                 onEditTask = {},
                 onToggleComplete = {},
                 onDeleteTask = {},
+                listState = rememberLazyListState(),
                 modifier = Modifier.padding(it)
             )
         }
