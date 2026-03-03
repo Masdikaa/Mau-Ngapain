@@ -259,6 +259,8 @@ class TaskViewModel @Inject constructor(
                 taskPriorityInput = newPriority
             )
         }
+        validateInput()
+        // Fixed a minor bug where input from Priority was not validated as data changes.
     }
 
     private fun validateInput() {
