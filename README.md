@@ -42,6 +42,14 @@ This project focuses on **architectural clarity**, **separation of concerns**, a
   </table>
 </div>
 
+
+<h4 align="center">Try install it on your device 🪄</h4>
+<p align="center">
+  <a href="https://github.com/Masdikaa/Mau-Ngapain/releases/download/v1.0/mau-ngapain.apk">
+    <img src="https://img.shields.io/badge/Download_APK-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
+  </a>
+</p>
+
 ---
 
 ## ✨ Key Features
