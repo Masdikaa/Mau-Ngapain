@@ -4,6 +4,46 @@
 
 This project focuses on **architectural clarity**, **separation of concerns**, and **predictable UI state management** rather than just feature complexity.
 
+---
+
+<p align="center">
+  <b>Demo 💫</b>
+</p>
+
+<p align="center">
+  <img src="asset/mau_ngapain_demo.gif" alt="App Demo" width="300" />
+</p>
+
+<div align="center">
+  <table style="border-collapse: collapse; text-align: center;">
+    <thead>
+      <tr>
+        <th colspan="3" style="padding: 10px;"><b>Screenshots 🖼️</b></th>
+      </tr>
+      <tr>
+        <th style="padding: 10px; border-bottom: 1px solid #ddd;">Task List</th>
+        <th style="padding: 10px; border-bottom: 1px solid #ddd;">Task Input Form</th>
+        <th style="padding: 10px; border-bottom: 1px solid #ddd;">Empty State</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 10px;">
+          <img src="asset/screenshot_1.jpg" width="250" alt="Task List"/>
+        </td>
+        <td style="padding: 10px;">
+          <img src="asset/screenshot_2.jpg" width="250" alt="Task Input Form"/>
+        </td>
+        <td style="padding: 10px;">
+          <img src="asset/screenshot_3.jpg" width="250" alt="Empty State"/>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+---
+
 ## ✨ Key Features
 
 * **Complete CRUD Operations:** Create, Read, Update, and Delete tasks seamlessly.
